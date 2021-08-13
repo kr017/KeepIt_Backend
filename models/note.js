@@ -19,6 +19,13 @@ const noteSchema = new Schema({
   isPinned: {
     type: Boolean,
   },
+  isArchieved: {
+    type: Boolean,
+  },
+  isActive: {
+    type: Number,
+    default: 1,
+  },
   color: {
     type: String,
   },

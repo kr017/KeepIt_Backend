@@ -24,10 +24,45 @@ module.exports = {
     });
   },
 
-  getUserNotes: (req, res) => {
-    Note.find({ user_id: req.user._id }).then(function (users) {
-      res.send(users);
-    });
+  getUserNotes: async (req, res) => {
+    try {
+      let sort = {};
+      if (req.body.order) {
+        sort[req.body.field] = parseInt(req.body.order); //order=1  =>ASC
+        // sort["title"]=1 //sorting by title in ASC order
+      } else {
+        sort.created_at = -1;
+      }
+      let search = { isActive: 1 };
+      if (req.body.search) {
+        search = {
+          $or: [
+            { color: { $regex: req.body.search, $options: "i" } },
+            { title: { $regex: req.body.search, $options: "i" } },
+            { description: { $regex: req.body.search, $options: "i" } },
+          ],
+        };
+      }
+      if (req.body.pin || req.body.pin === false) {
+        search.isPinned = req.body.pin;
+      }
+
+      // let totalRecords = await Note.count();
+      let notes = await Note.find(search)
+        .collation({ locale: "en_US", strength: 1 }) //letter casing
+        .sort(sort);
+
+      // console.log(totalRecords);
+      res.json({
+        status: "success",
+        message: "User notes",
+        data: notes,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: (err && err.message) || "Failed to get notes",
+      });
+    }
   },
 
   /**
@@ -94,10 +129,50 @@ module.exports = {
         throw { message: "Note id is required." };
       }
 
-      let deleteNote = await Note.findByIdAndDelete(req.body.note_id);
+      let deleteNote = await Note.findByIdAndUpdate(req.body.note_id, {
+        isActive: 0,
+      });
       res.json({
         status: "success",
         message: "Note deleted successfully",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error && error.message) || "Note update failed",
+      });
+    }
+  },
+
+  getTrashNotes: async (req, res) => {
+    try {
+      let notes = await Note.find({ isActive: 0 });
+
+      res.json({
+        status: "success",
+        message: "deleted notes",
+        data: notes,
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error && error.message) || "Note update failed",
+      });
+    }
+  },
+
+  restoreNote: async (req, res) => {
+    try {
+      let notes = await Note.findByIdAndUpdate(
+        req.body.note_id,
+        { isActive: 1 },
+        {
+          new: true,
+        }
+      );
+
+      res.json({
+        status: "success",
+        message: "deleted notes",
+        data: notes,
       });
     } catch (error) {
       res.status(400).json({
