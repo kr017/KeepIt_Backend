@@ -33,7 +33,7 @@ module.exports = {
       } else {
         sort.created_at = -1;
       }
-      let search = {};
+      let search = { user_id: req.user._id };
 
       search.isActive = 1;
       if (req.body.isArchieved || req.body.isArchieved === false) {
