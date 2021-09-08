@@ -33,9 +33,16 @@ module.exports = {
       } else {
         sort.created_at = -1;
       }
-      let search = { isActive: 1 };
+      let search = {};
+
+      search.isActive = 1;
+      if (req.body.isArchieved || req.body.isArchieved === false) {
+        search.isArchieved = req.body.isArchieved;
+      }
+
       if (req.body.search) {
         search = {
+          ...search,
           $or: [
             { color: { $regex: req.body.search, $options: "i" } },
             { title: { $regex: req.body.search, $options: "i" } },
@@ -43,6 +50,7 @@ module.exports = {
           ],
         };
       }
+
       if (req.body.pin || req.body.pin === false) {
         search.isPinned = req.body.pin;
       }
@@ -95,7 +103,7 @@ module.exports = {
       }
 
       let userNote = await Note.findById(req.body._id);
-      console.log(req.body);
+
       let updatedNote = await Note.findByIdAndUpdate(
         req.body._id,
         {
@@ -110,7 +118,7 @@ module.exports = {
         },
         { new: true }
       );
-      console.log(updatedNote);
+
       res.json({
         status: "success",
         message: "Note updated successfully",
@@ -119,6 +127,45 @@ module.exports = {
     } catch (err) {
       res.status(400).json({
         message: (err && err.message) || "Note update failed",
+      });
+    }
+  },
+
+  archiveNote: async (req, res) => {
+    try {
+      if (!req.body.note_id) {
+        throw { message: "Note id is required." };
+      }
+
+      let archiveNote = await Note.findByIdAndUpdate(req.body.note_id, {
+        isArchieved: 1,
+      });
+      res.json({
+        status: "success",
+        message: "Note archieved successfully",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error && error.message) || "Note update failed",
+      });
+    }
+  },
+  unArchiveNote: async (req, res) => {
+    try {
+      if (!req.body.note_id) {
+        throw { message: "Note id is required." };
+      }
+
+      let archiveNote = await Note.findByIdAndUpdate(req.body.note_id, {
+        isArchieved: 0,
+      });
+      res.json({
+        status: "success",
+        message: "Note unarchieved successfully",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error && error.message) || "Note update failed",
       });
     }
   },
@@ -132,6 +179,24 @@ module.exports = {
       let deleteNote = await Note.findByIdAndUpdate(req.body.note_id, {
         isActive: 0,
       });
+      res.json({
+        status: "success",
+        message: "Note deleted successfully",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: (error && error.message) || "Note update failed",
+      });
+    }
+  },
+
+  deletePermanentNote: async (req, res) => {
+    try {
+      if (!req.body.note_id) {
+        throw { message: "Note id is required." };
+      }
+
+      let deleteNote = await Note.findByIdAndDelete(req.body.note_id);
       res.json({
         status: "success",
         message: "Note deleted successfully",

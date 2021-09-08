@@ -1,5 +1,6 @@
 const User = require("../models/user");
-
+const Product = require("../models/product");
+const fetch = require("node-fetch");
 const config = require("../config");
 const jwt = require("jsonwebtoken");
 const { decrypt } = require("../utils/encrypt");
@@ -90,8 +91,20 @@ module.exports = {
       }
     } catch (error) {
       res.status(400).json({
+        code: 400,
         message: (error && error.message) || "Ooops!!! Account doesn't exists",
       });
     }
+  },
+
+  importProducts: (req, res) => {
+    fetch("https://fakestoreapi.com/products")
+      .then(res => res.json())
+      .then(async products => {
+        products.map(item => {
+          item.image = [item.image];
+        });
+        let prod = await Product.create(products);
+      });
   },
 };

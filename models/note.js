@@ -21,6 +21,7 @@ const noteSchema = new Schema({
   },
   isArchieved: {
     type: Boolean,
+    default: false,
   },
   isActive: {
     type: Number,

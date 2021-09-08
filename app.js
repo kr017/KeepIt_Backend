@@ -40,3 +40,5 @@ app.use(function (err, req, res, next) {
 });
 
 module.exports = app;
+
+// mongodb+srv://krmate:kir@n@cluster0.w4px0.mongodb.net/noteme?retryWrites=true&w=majority
