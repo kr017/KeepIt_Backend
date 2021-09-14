@@ -210,7 +210,8 @@ module.exports = {
 
   getTrashNotes: async (req, res) => {
     try {
-      let notes = await Note.find({ isActive: 0 });
+      let search = { user_id: req.user._id, isActive: 0 };
+      let notes = await Note.find(search);
 
       res.json({
         status: "success",
